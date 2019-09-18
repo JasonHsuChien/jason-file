@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,10 +23,10 @@ import com.jason.file.util.OpenOfficeUtil;
 public class FileService {
 
 	@Value("${file.upload.path}")
-    private String filePath;
-	
+	private String filePath;
+
 	private static Log logger = LogFactory.getLog(FileService.class);
-	
+
 	public String fileUpload(MultipartFile file) {
 		if (file.isEmpty()) {
 			return "false";
@@ -47,7 +48,7 @@ public class FileService {
 			return "false";
 		}
 	}
-	
+
 	public String fileUpload(List<MultipartFile> files) {
 		if (files.isEmpty()) {
 			return "false";
@@ -74,59 +75,50 @@ public class FileService {
 		}
 		return "true";
 	}
-	
-	public List<String> getFiles() {
-        List<String> files = new ArrayList<String>();
-        File file = new File(filePath);
-        File[] tempList = file.listFiles();
 
-        for (int i = 0; i < tempList.length; i++) {
-        	if (tempList[i].isDirectory()) {
-        		continue;
-        	}
-            if (tempList[i].isFile()) {
-            	files.add(tempList[i].getName());
-            }
-        }
-        return files;
-    }
-	
+	public List<String> getFiles() {
+		List<String> files = new ArrayList<String>();
+		File file = new File(filePath);
+		File[] tempList = file.listFiles();
+
+		for (int i = 0; i < tempList.length; i++) {
+			if (tempList[i].isDirectory()) {
+				continue;
+			}
+			if (tempList[i].isFile()) {
+				files.add(tempList[i].getName());
+			}
+		}
+		return files;
+	}
+
 	public String downLoad(HttpServletResponse response, String filename) {
-//		String filename = "learning list.txt";
 		File file = new File(filePath + "/" + filename);
 		if (file.exists()) {
-			response.setContentType("application/force-download");
-			response.setHeader("Content-Disposition", "attachment;fileName=" + filename);
-
-			byte[] buffer = new byte[1024];
-			FileInputStream fis = null;
-			BufferedInputStream bis = null;
-
-			OutputStream os = null;
 			try {
-				os = response.getOutputStream();
-				fis = new FileInputStream(file);
-				bis = new BufferedInputStream(fis);
+				response.setContentType("application/force-download");
+				response.setHeader("Content-Disposition",
+						"attachment;fileName=" + URLEncoder.encode(filename, "UTF-8").replaceAll("\\+","%20"));
+
+				byte[] buffer = new byte[1024];
+				OutputStream os = response.getOutputStream();
+				FileInputStream fis = new FileInputStream(file);
+				BufferedInputStream bis = new BufferedInputStream(fis);
 				int i = bis.read(buffer);
 				while (i != -1) {
 					os.write(buffer);
 					i = bis.read(buffer);
 				}
-
-			} catch (Exception e) {
-				System.out.println(e.getMessage());
-			}
-			logger.info("----------file download" + filename);
-			try {
 				bis.close();
 				fis.close();
 			} catch (IOException e) {
-				System.out.println(e.getMessage());
+				logger.error("----------file download failed", e);
 			}
 		}
+		logger.info("----------file download success" + filename);
 		return null;
 	}
-	
+
 	public String office2PDF(MultipartFile file) {
 		if (file.isEmpty()) {
 			return "false";
@@ -136,5 +128,5 @@ public class FileService {
 		OpenOfficeUtil.office2PDF(sourceFile);
 		return "true";
 	}
-	
+
 }
