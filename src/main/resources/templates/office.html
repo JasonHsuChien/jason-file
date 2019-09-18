@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org"  
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+<head>
+<meta charset="UTF-8" />
+<title>Insert title here</title>
+</head>
+<body>
+    <h1 th:inlines="text">文件转换</h1>
+    <form action="office2PDF" method="post" enctype="multipart/form-data">
+        <p>选择文件: <input type="file" name="fileName"/></p>
+        <p><input type="submit" value="转换PDF"/></p>
+    </form>
+</body>
+</html>
